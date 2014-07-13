@@ -7,9 +7,7 @@ goweibo is a stand-alone golang library which provides
 
 for Sina Weibo 新浪微博.
 
-https://github.com/qingchengnus/goweibo
-
-Developed by Qing Cheng. Contact me at [qingchengnus@gmail.com](qingchengnus@gmail.com).
+Developed by Qing Cheng. Contact me at qingchengnus@gmail.com.
 
 ## Basic Usage
 
