@@ -29,7 +29,7 @@ type User struct {
 	Friends_count      int64
 	Statuses_count     int64
 	Favourites_count   int64
-	Created_at         int64
+	Created_at         string
 	Following          bool
 	Allow_all_act_msg  bool
 	Geo_enabled        bool
