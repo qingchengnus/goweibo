@@ -10,14 +10,16 @@ import (
 )
 
 const (
-	usersUrl     = apiUrl + "/users"
-	userInfoUrl  = usersUrl + "/show.json"
-	userCountUrl = usersUrl + "/counts.json"
+	usersUrl          = apiUrl + "/users"
+	userInfoUrl       = usersUrl + "/show.json"
+	userCountUrl      = usersUrl + "/counts.json"
+	userInfoDomainUrl = usersUrl + "/domain_show.json"
 )
 
 const (
 	getUserInfoModeUid        = iota
 	getUserInfoModeScreenName = iota
+	getUserInfoModeDomain     = iota
 )
 
 type UserCountResponse []UserCount
@@ -89,12 +91,19 @@ type Geo struct {
 
 func (c *Client) getUserInfo(param string, mode int) (User, bool) {
 	params := url.Values{"access_token": {c.AccessToken}}
+	var requestUrl string
 	if mode == getUserInfoModeUid {
 		params.Add("uid", param)
-	} else {
+		requestUrl = userInfoUrl
+	} else if mode == getUserInfoModeScreenName {
 		params.Add("screen_name", param)
+		requestUrl = userInfoUrl
+	} else {
+		params.Add("domain", param)
+		requestUrl = userInfoDomainUrl
 	}
-	resp, err := http.Get(encodeParameters(userInfoUrl, params))
+
+	resp, err := http.Get(encodeParameters(requestUrl, params))
 	panicError(err)
 
 	if resp.StatusCode >= 400 {
@@ -118,6 +127,10 @@ func (c *Client) GetUserInfoWithUid(uid string) (User, bool) {
 
 func (c *Client) GetUserInfoWithScreenName(sName string) (User, bool) {
 	return c.getUserInfo(sName, getUserInfoModeScreenName)
+}
+
+func (c *Client) GetUserInfoWithDomain(domain string) (User, bool) {
+	return c.getUserInfo(domain, getUserInfoModeDomain)
 }
 
 func (c *Client) GetCurrentUserInfo() (User, bool) {
