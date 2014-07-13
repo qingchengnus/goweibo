@@ -2,7 +2,6 @@ package goweibo
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -37,13 +36,11 @@ func (c Client) getAuthorizationParameters() url.Values {
 	if c.AppKey == "" || c.CallbackUrl == "" {
 		panic("AppKey or CallbackUrl not set!")
 	} else {
-		//return "?client_id=" + c.AppKey + "&redirect_uri=" + c.CallbackUrl
 		return url.Values{"client_id": {c.AppKey}, "redirect_uri": {c.CallbackUrl}}
 	}
 }
 
 func (c *Client) GetAuthorizationUrl() string {
-	//return baseUrl + authorizationUrl + c.getAuthorizationParameters()
 	return encodeParameters(baseUrl+authorizationUrl, (*c).getAuthorizationParameters())
 }
 
@@ -66,8 +63,9 @@ func (c *Client) RequestAccessToken(code string) (string, string, string, string
 		var currentResponse accessTokenResponse
 
 		err = json.Unmarshal(body, &currentResponse)
-		fmt.Println("Body: ", currentResponse)
 		panicError(err)
+		c.SetAccessToken(currentResponse.Access_token)
+		c.Uid = currentResponse.Uid
 		return currentResponse.Access_token, string(currentResponse.Expires_in), currentResponse.Remind_in, currentResponse.Uid, true
 	}
 }

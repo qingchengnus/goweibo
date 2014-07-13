@@ -2,7 +2,6 @@ package goweibo
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -77,11 +76,6 @@ func (c *Client) GetUserInfoWithUid(uid string) (User, bool) {
 	panicError(err)
 
 	if resp.StatusCode >= 400 {
-		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
-
-		panicError(err)
-		panic(string(body))
 		return User{}, false
 	} else {
 		defer resp.Body.Close()
@@ -91,7 +85,6 @@ func (c *Client) GetUserInfoWithUid(uid string) (User, bool) {
 		var currentResponse User
 
 		err = json.Unmarshal(body, &currentResponse)
-		fmt.Println("Body: ", currentResponse)
 		panicError(err)
 		return currentResponse, true
 	}
