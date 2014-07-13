@@ -12,6 +12,11 @@ const (
 	userInfoUrl = usersUrl + "/show.json"
 )
 
+const (
+	getUserInfoModeUid        = iota
+	getUserInfoModeScreenName = iota
+)
+
 type User struct {
 	Id                 int64
 	Screen_name        string
@@ -70,8 +75,13 @@ type Geo struct {
 	More          string
 }
 
-func (c *Client) GetUserInfoWithUid(uid string) (User, bool) {
-	params := url.Values{"access_token": {c.AccessToken}, "uid": {uid}}
+func (c *Client) getUserInfo(param string, mode int) (User, bool) {
+	params := url.Values{"access_token": {c.AccessToken}}
+	if mode == getUserInfoModeUid {
+		params.Add("uid", param)
+	} else {
+		params.Add("screen_name", param)
+	}
 	resp, err := http.Get(encodeParameters(userInfoUrl, params))
 	panicError(err)
 
@@ -88,4 +98,16 @@ func (c *Client) GetUserInfoWithUid(uid string) (User, bool) {
 		panicError(err)
 		return currentResponse, true
 	}
+}
+
+func (c *Client) GetUserInfoWithUid(uid string) (User, bool) {
+	return c.getUserInfo(uid, getUserInfoModeUid)
+}
+
+func (c *Client) GetUserInfoWithScreenName(sName string) (User, bool) {
+	return c.getUserInfo(sName, getUserInfoModeScreenName)
+}
+
+func (c *Client) GetCurrentUserInfo() (User, bool) {
+	return c.GetUserInfoWithUid(c.Uid)
 }
