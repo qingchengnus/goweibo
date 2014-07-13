@@ -9,6 +9,7 @@ type Client struct {
 	AppKey      string
 	AppSecret   string
 	CallbackUrl string
+	AccessToken string
 }
 
 const (
@@ -25,4 +26,12 @@ func panicError(err error) {
 	if err != nil {
 		panic(err.Error())
 	}
+}
+
+func NewClient(appKey, appSecret, callbackUrl string) *Client {
+	c := new(Client)
+	c.AppKey = appKey
+	c.AppSecret = appSecret
+	c.CallbackUrl = callbackUrl
+	return c
 }

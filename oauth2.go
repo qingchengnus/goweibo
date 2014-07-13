@@ -42,9 +42,9 @@ func (c Client) getAuthorizationParameters() url.Values {
 	}
 }
 
-func (c Client) GetAuthorizationUrl() string {
+func (c *Client) GetAuthorizationUrl() string {
 	//return baseUrl + authorizationUrl + c.getAuthorizationParameters()
-	return encodeParameters(baseUrl+authorizationUrl, c.getAuthorizationParameters())
+	return encodeParameters(baseUrl+authorizationUrl, (*c).getAuthorizationParameters())
 }
 
 func (c Client) getAccessTokenParameters(code string) url.Values {
@@ -52,8 +52,8 @@ func (c Client) getAccessTokenParameters(code string) url.Values {
 
 }
 
-func (c Client) RequestAccessToken(code string) (bool, string, string, string, string) {
-	resp, err := http.PostForm(baseUrl+accessTokenUrl, c.getAccessTokenParameters(code))
+func (c *Client) RequestAccessToken(code string) (bool, string, string, string, string) {
+	resp, err := http.PostForm(baseUrl+accessTokenUrl, (*c).getAccessTokenParameters(code))
 	panicError(err)
 
 	if resp.StatusCode >= 400 {
@@ -70,4 +70,8 @@ func (c Client) RequestAccessToken(code string) (bool, string, string, string, s
 		panicError(err)
 		return true, currentResponse.Access_token, string(currentResponse.Expires_in), currentResponse.Remind_in, currentResponse.Uid
 	}
+}
+
+func (c *Client) SetAccessToken(accessToken string) {
+	(*c).AccessToken = accessToken
 }
