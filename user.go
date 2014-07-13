@@ -142,10 +142,11 @@ func (c *Client) GetUsersFollowersFriendsStatusCounts(uids []string) (map[string
 		panicError(err)
 		result := make(map[string]map[string]int64)
 		for _, currentUC := range currentResponse {
-			result[strconv.Itoa(currentUC.Id)] = make(map[string]int64)
-			result[strconv.Itoa(currentUC.Id)]["followers_count"] = currentUC.Followers_count
-			result[strconv.Itoa(currentUC.Id)]["friends_count"] = currentUC.Friends_count
-			result[strconv.Itoa(currentUC.Id)]["statuses_count"] = currentUC.Statuses_count
+			key := strconv.FormatInt(currentUC.Id, 10)
+			result[key] = make(map[string]int64)
+			result[key]["followers_count"] = currentUC.Followers_count
+			result[key]["friends_count"] = currentUC.Friends_count
+			result[key]["statuses_count"] = currentUC.Statuses_count
 		}
 
 		return result, true
