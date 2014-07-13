@@ -5,17 +5,28 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 const (
-	usersUrl    = apiUrl + "/users"
-	userInfoUrl = usersUrl + "/show.json"
+	usersUrl     = apiUrl + "/users"
+	userInfoUrl  = usersUrl + "/show.json"
+	userCountUrl = usersUrl + "/counts.json"
 )
 
 const (
 	getUserInfoModeUid        = iota
 	getUserInfoModeScreenName = iota
 )
+
+type UserCountResponse []UserCount
+
+type UserCount struct {
+	Id              int64
+	Followers_count int64
+	Friends_count   int64
+	Statuses_count  int64
+}
 
 type User struct {
 	Id                 int64
@@ -110,4 +121,33 @@ func (c *Client) GetUserInfoWithScreenName(sName string) (User, bool) {
 
 func (c *Client) GetCurrentUserInfo() (User, bool) {
 	return c.GetUserInfoWithUid(c.Uid)
+}
+
+func (c *Client) GetUsersFollowersFriendsStatusCounts(uids []string) (map[string]map[string]int64, bool) {
+	params := url.Values{"access_token": {c.AccessToken}, "uids": {strings.Join(uids, ",")}}
+	resp, err := http.Get(encodeParameters(userCountUrl, params))
+	panicError(err)
+
+	if resp.StatusCode >= 400 {
+		return make(map[string]map[string]int64), false
+	} else {
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		panicError(err)
+
+		var currentResponse UserCountResponse
+
+		err = json.Unmarshal(body, &currentResponse)
+		panicError(err)
+
+		result := make(map[string]map[string]int64)
+		for _, currentUC := range currentResponse {
+			result[string(currentUC.Id)] = make(map[string]int64)
+			result[string(currentUC.Id)]["followers_count"] = currentUC.Followers_count
+			result[string(currentUC.Id)]["friends_count"] = currentUC.Friends_count
+			result[string(currentUC.Id)]["statuses_count"] = currentUC.Statuses_count
+		}
+
+		return result, true
+	}
 }
