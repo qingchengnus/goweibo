@@ -136,14 +136,13 @@ func (c *Client) GetUsersFollowersFriendsStatusCounts(uids []string) (map[string
 		body, err := ioutil.ReadAll(resp.Body)
 
 		panicError(err)
-		fmt.Println(string(body))
 		var currentResponse UserCountResponse
 
 		err = json.Unmarshal(body, &currentResponse)
 		panicError(err)
-
 		result := make(map[string]map[string]int64)
 		for _, currentUC := range currentResponse {
+			fmt.Println(string(currentUC.Id))
 			result[string(currentUC.Id)] = make(map[string]int64)
 			result[string(currentUC.Id)]["followers_count"] = currentUC.Followers_count
 			result[string(currentUC.Id)]["friends_count"] = currentUC.Friends_count
