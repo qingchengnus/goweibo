@@ -77,6 +77,11 @@ func (c *Client) GetUserInfoWithUid(uid string) (User, bool) {
 	panicError(err)
 
 	if resp.StatusCode >= 400 {
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+
+		panicError(err)
+		panic(body)
 		return User{}, false
 	} else {
 		defer resp.Body.Close()
