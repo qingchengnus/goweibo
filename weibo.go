@@ -10,6 +10,7 @@ type Client struct {
 	AppSecret   string
 	CallbackUrl string
 	AccessToken string
+	Uid         string
 }
 
 const (
