@@ -15,8 +15,8 @@ type Client struct {
 
 const (
 	baseUrl = "https://api.weibo.com"
-	version = 2
-	apiUrl  = baseUrl + "/" + string(version)
+	version = "2"
+	apiUrl  = baseUrl + "/" + version
 )
 
 func encodeParameters(url string, params url.Values) string {
