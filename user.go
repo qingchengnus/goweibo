@@ -81,7 +81,7 @@ func (c *Client) GetUserInfoWithUid(uid string) (User, bool) {
 		body, err := ioutil.ReadAll(resp.Body)
 
 		panicError(err)
-		panic(body)
+		panic(string(body))
 		return User{}, false
 	} else {
 		defer resp.Body.Close()
