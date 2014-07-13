@@ -2,6 +2,7 @@ package goweibo
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -133,8 +134,9 @@ func (c *Client) GetUsersFollowersFriendsStatusCounts(uids []string) (map[string
 	} else {
 		defer resp.Body.Close()
 		body, err := ioutil.ReadAll(resp.Body)
-		panicError(err)
 
+		panicError(err)
+		fmt.Println(string(body))
 		var currentResponse UserCountResponse
 
 		err = json.Unmarshal(body, &currentResponse)
