@@ -2,10 +2,10 @@ package goweibo
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -142,11 +142,10 @@ func (c *Client) GetUsersFollowersFriendsStatusCounts(uids []string) (map[string
 		panicError(err)
 		result := make(map[string]map[string]int64)
 		for _, currentUC := range currentResponse {
-			fmt.Println(string(currentUC.Id))
-			result[string(currentUC.Id)] = make(map[string]int64)
-			result[string(currentUC.Id)]["followers_count"] = currentUC.Followers_count
-			result[string(currentUC.Id)]["friends_count"] = currentUC.Friends_count
-			result[string(currentUC.Id)]["statuses_count"] = currentUC.Statuses_count
+			result[strconv.Itoa(currentUC.Id)] = make(map[string]int64)
+			result[strconv.Itoa(currentUC.Id)]["followers_count"] = currentUC.Followers_count
+			result[strconv.Itoa(currentUC.Id)]["friends_count"] = currentUC.Friends_count
+			result[strconv.Itoa(currentUC.Id)]["statuses_count"] = currentUC.Statuses_count
 		}
 
 		return result, true
