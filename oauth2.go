@@ -52,12 +52,12 @@ func (c Client) getAccessTokenParameters(code string) url.Values {
 
 }
 
-func (c *Client) RequestAccessToken(code string) (bool, string, string, string, string) {
+func (c *Client) RequestAccessToken(code string) (string, string, string, string, bool) {
 	resp, err := http.PostForm(baseUrl+accessTokenUrl, (*c).getAccessTokenParameters(code))
 	panicError(err)
 
 	if resp.StatusCode >= 400 {
-		return false, "", "", "", ""
+		return "", "", "", "", false
 	} else {
 		defer resp.Body.Close()
 		body, err := ioutil.ReadAll(resp.Body)
@@ -68,7 +68,7 @@ func (c *Client) RequestAccessToken(code string) (bool, string, string, string, 
 		err = json.Unmarshal(body, &currentResponse)
 		fmt.Println("Body: ", currentResponse)
 		panicError(err)
-		return true, currentResponse.Access_token, string(currentResponse.Expires_in), currentResponse.Remind_in, currentResponse.Uid
+		return currentResponse.Access_token, string(currentResponse.Expires_in), currentResponse.Remind_in, currentResponse.Uid, true
 	}
 }
 
