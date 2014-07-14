@@ -4,6 +4,7 @@ import (
 	//"net/http"
 	"errors"
 	"net/url"
+	"strconv"
 )
 
 type Client struct {
@@ -16,7 +17,7 @@ type Client struct {
 
 type ErrorResponse struct {
 	Request    string
-	Error_code string
+	Error_code int64
 	Error      string
 }
 
@@ -45,5 +46,5 @@ func NewClient(appKey, appSecret, callbackUrl string) *Client {
 }
 
 func (errorResponse ErrorResponse) parseErrorResponse() error {
-	return errors.New("Failed to request: " + errorResponse.Request + " . Error code: " + errorResponse.Error_code + " (Refer to http://open.weibo.com/wiki/Error_code). Reason: " + errorResponse.Error + ".")
+	return errors.New("Failed to request: " + errorResponse.Request + " . Error code: " + strconv.FormatInt(errorResponse.Error_code, 10) + " (Refer to http://open.weibo.com/wiki/Error_code). Reason: " + errorResponse.Error + ".")
 }
