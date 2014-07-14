@@ -2,6 +2,7 @@ package goweibo
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -32,16 +33,20 @@ const (
 	AuthorizationLanguageEnglish = iota
 )
 
-func (c Client) getAuthorizationParameters() url.Values {
+func (c Client) getAuthorizationParameters() (url.Values, error) {
 	if c.AppKey == "" || c.CallbackUrl == "" {
-		panic("AppKey or CallbackUrl not set!")
+		return nil, errors.New("AppKey or CallbackUrl not set!")
 	} else {
-		return url.Values{"client_id": {c.AppKey}, "redirect_uri": {c.CallbackUrl}}
+		return url.Values{"client_id": {c.AppKey}, "redirect_uri": {c.CallbackUrl}}, nil
 	}
 }
 
-func (c *Client) GetAuthorizationUrl() string {
-	return encodeParameters(baseUrl+authorizationUrl, (*c).getAuthorizationParameters())
+func (c *Client) GetAuthorizationUrl() (string, error) {
+	params, err := (*c).getAuthorizationParameters()
+	if err != nil {
+		return nil, err
+	}
+	return encodeParameters(baseUrl+authorizationUrl, params), nil
 }
 
 func (c Client) getAccessTokenParameters(code string) url.Values {
@@ -49,16 +54,20 @@ func (c Client) getAccessTokenParameters(code string) url.Values {
 
 }
 
-func (c *Client) RequestAccessToken(code string) (string, string, string, string, bool) {
-	resp, err := http.PostForm(baseUrl+accessTokenUrl, (*c).getAccessTokenParameters(code))
-	panicError(err)
+func (c *Client) RequestAccessToken(code string) (string, string, string, string, error) {
+	resp, httpError := http.PostForm(baseUrl+accessTokenUrl, (*c).getAccessTokenParameters(code))
+	if httpError != nil {
+		return nil, nil, nil, nil, httpError
+	}
 
+	defer resp.Body.Close()
+	body, readError := ioutil.ReadAll(resp.Body)
+	if readError != nil {
+		return nil, nil, nil, nil, readError
+	}
 	if resp.StatusCode >= 400 {
-		return "", "", "", "", false
+		var currentResponse accessTokenResponse
 	} else {
-		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
-		panicError(err)
 
 		var currentResponse accessTokenResponse
 
