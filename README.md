@@ -22,12 +22,12 @@ client := goweibo.NewClient(appKey, appSecret, callbackUrl)
 
 Get authorization url
 ```go
-authorizationUrl := client.GetAuthorizationUrl()
+authorizationUrl, err := client.GetAuthorizationUrl()
 ```
 
 Request access token
 ```go
-accessToken, expiresIn, remindIn, uid, ok := client.RequestAccessToken(code)
+accessToken, expiresIn, remindIn, uid, err := client.RequestAccessToken(code)
 ```
 where you got the code from callback after user logged in. After this call, you can access current user's uid and access token by calling:
 ```go
@@ -41,24 +41,19 @@ uid := client.Uid
 
 Get current user info
 ```go
-currentUser := client.GetCurrentUserInfo()
+currentUser, err := client.GetCurrentUserInfo()
 ```
 
 Get user info with uid, name or domain
 ```go
-userInfo := client.GetUserInfoWithUid(uid)
-userInfo := client.GetUserInfoWithScreenName(name)
-userInfo := client.GetUserInfoWithDomain(domain)
+userInfo, err := client.GetUserInfoWithUid(uid)
+userInfo, err := client.GetUserInfoWithScreenName(name)
+userInfo, err := client.GetUserInfoWithDomain(domain)
 name := userInfo.ScreenName
 ```
 
 Get several users' followers count, friends count and statuses count
 ```go
-usersCount := client.GetUsersFollowersFriendsStatusCounts(uids)
+usersCount, err := client.GetUsersFollowersFriendsStatusCounts(uids)
 user1FriendsCount := usersCount[uid1]["friends_count"]
 ```
-
-## wiki
-
-For more information, please refer to standard go 
-[docs](https://github.com/michaelliao/goweibo/wiki).
