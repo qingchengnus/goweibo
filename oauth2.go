@@ -44,7 +44,7 @@ func (c Client) getAuthorizationParameters() (url.Values, error) {
 func (c *Client) GetAuthorizationUrl() (string, error) {
 	params, err := (*c).getAuthorizationParameters()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	return encodeParameters(baseUrl+authorizationUrl, params), nil
 }
@@ -57,28 +57,32 @@ func (c Client) getAccessTokenParameters(code string) url.Values {
 func (c *Client) RequestAccessToken(code string) (string, string, string, string, error) {
 	resp, httpError := http.PostForm(baseUrl+accessTokenUrl, (*c).getAccessTokenParameters(code))
 	if httpError != nil {
-		return nil, nil, nil, nil, httpError
+		return "", "", "", "", httpError
 	}
 
 	defer resp.Body.Close()
 	body, readError := ioutil.ReadAll(resp.Body)
 	if readError != nil {
-		return nil, nil, nil, nil, readError
+		return "", "", "", "", readError
 	}
 	if resp.StatusCode >= 400 {
-		var currentResponse accessTokenResponse
+		var currentResponse ErrorResponse
+		jsonError := json.Unmarshal(body, &currentResponse)
+		if jsonError != nil {
+			return "", "", "", "", jsonError
+		}
+
+		return "", "", "", "", currentResponse.parseErrorResponse()
 	} else {
 
 		var currentResponse accessTokenResponse
 
-		err = json.Unmarshal(body, &currentResponse)
-		panicError(err)
-		c.SetAccessToken(currentResponse.Access_token)
+		jsonError := json.Unmarshal(body, &currentResponse)
+		if jsonError != nil {
+			return "", "", "", "", jsonError
+		}
+		c.AccessToken = currentResponse.Access_token
 		c.Uid = currentResponse.Uid
-		return currentResponse.Access_token, string(currentResponse.Expires_in), currentResponse.Remind_in, currentResponse.Uid, true
+		return currentResponse.Access_token, string(currentResponse.Expires_in), currentResponse.Remind_in, currentResponse.Uid, nil
 	}
-}
-
-func (c *Client) SetAccessToken(accessToken string) {
-	(*c).AccessToken = accessToken
 }

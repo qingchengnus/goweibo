@@ -89,7 +89,7 @@ type Geo struct {
 	More          string
 }
 
-func (c *Client) getUserInfo(param string, mode int) (User, bool) {
+func (c *Client) getUserInfo(param string, mode int) (User, error) {
 	params := url.Values{"access_token": {c.AccessToken}}
 	var requestUrl string
 	if mode == getUserInfoModeUid {
@@ -103,56 +103,80 @@ func (c *Client) getUserInfo(param string, mode int) (User, bool) {
 		requestUrl = userInfoDomainUrl
 	}
 
-	resp, err := http.Get(encodeParameters(requestUrl, params))
-	panicError(err)
-
+	resp, httpError := http.Get(encodeParameters(requestUrl, params))
+	if httpError != nil {
+		return User{}, httpError
+	}
+	defer resp.Body.Close()
+	body, readError := ioutil.ReadAll(resp.Body)
+	if readError != nil {
+		return User{}, readError
+	}
 	if resp.StatusCode >= 400 {
-		return User{}, false
+		var currentResponse ErrorResponse
+
+		jsonError := json.Unmarshal(body, &currentResponse)
+		if jsonError != nil {
+			return User{}, jsonError
+		}
+		return User{}, currentResponse.parseErrorResponse()
 	} else {
-		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
-		panicError(err)
 
 		var currentResponse User
 
-		err = json.Unmarshal(body, &currentResponse)
-		panicError(err)
-		return currentResponse, true
+		jsonError := json.Unmarshal(body, &currentResponse)
+		if jsonError != nil {
+			return User{}, jsonError
+		}
+		return currentResponse, nil
 	}
 }
 
-func (c *Client) GetUserInfoWithUid(uid string) (User, bool) {
+func (c *Client) GetUserInfoWithUid(uid string) (User, error) {
 	return c.getUserInfo(uid, getUserInfoModeUid)
 }
 
-func (c *Client) GetUserInfoWithScreenName(sName string) (User, bool) {
+func (c *Client) GetUserInfoWithScreenName(sName string) (User, error) {
 	return c.getUserInfo(sName, getUserInfoModeScreenName)
 }
 
-func (c *Client) GetUserInfoWithDomain(domain string) (User, bool) {
+func (c *Client) GetUserInfoWithDomain(domain string) (User, error) {
 	return c.getUserInfo(domain, getUserInfoModeDomain)
 }
 
-func (c *Client) GetCurrentUserInfo() (User, bool) {
+func (c *Client) GetCurrentUserInfo() (User, error) {
 	return c.GetUserInfoWithUid(c.Uid)
 }
 
-func (c *Client) GetUsersFollowersFriendsStatusCounts(uids []string) (map[string]map[string]int64, bool) {
+func (c *Client) GetUsersFollowersFriendsStatusCounts(uids []string) (map[string]map[string]int64, error) {
 	params := url.Values{"access_token": {c.AccessToken}, "uids": {strings.Join(uids, ",")}}
-	resp, err := http.Get(encodeParameters(userCountUrl, params))
-	panicError(err)
+	resp, httpError := http.Get(encodeParameters(userCountUrl, params))
+	if httpError != nil {
+		return nil, httpError
+	}
+
+	defer resp.Body.Close()
+	body, readError := ioutil.ReadAll(resp.Body)
+
+	if readError != nil {
+		return nil, readError
+	}
 
 	if resp.StatusCode >= 400 {
-		return make(map[string]map[string]int64), false
-	} else {
-		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
+		var currentResponse ErrorResponse
 
-		panicError(err)
+		jsonError := json.Unmarshal(body, &currentResponse)
+		if jsonError != nil {
+			return nil, jsonError
+		}
+		return nil, currentResponse.parseErrorResponse()
+	} else {
 		var currentResponse UserCountResponse
 
-		err = json.Unmarshal(body, &currentResponse)
-		panicError(err)
+		jsonError := json.Unmarshal(body, &currentResponse)
+		if jsonError != nil {
+			return nil, jsonError
+		}
 		result := make(map[string]map[string]int64)
 		for _, currentUC := range currentResponse {
 			key := strconv.FormatInt(currentUC.Id, 10)
@@ -162,6 +186,6 @@ func (c *Client) GetUsersFollowersFriendsStatusCounts(uids []string) (map[string
 			result[key]["statuses_count"] = currentUC.Statuses_count
 		}
 
-		return result, true
+		return result, nil
 	}
 }
