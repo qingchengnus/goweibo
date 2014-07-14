@@ -2,6 +2,7 @@ package goweibo
 
 import (
 	//"net/http"
+	"errors"
 	"net/url"
 )
 
@@ -11,6 +12,12 @@ type Client struct {
 	CallbackUrl string
 	AccessToken string
 	Uid         string
+}
+
+type ErrorResponse struct {
+	Request    string
+	Error_code string
+	Error      string
 }
 
 const (
@@ -35,4 +42,8 @@ func NewClient(appKey, appSecret, callbackUrl string) *Client {
 	c.AppSecret = appSecret
 	c.CallbackUrl = callbackUrl
 	return c
+}
+
+func (errorResponse ErrorResponse) parseErrorResponse() error {
+	return errors.New("Failed to request: " + errorResponse.Request + " . Error code: " + errorResponse.Error_code + " (Refer to http://open.weibo.com/wiki/Error_code). Reason: " + errorResponse.Error + ".")
 }

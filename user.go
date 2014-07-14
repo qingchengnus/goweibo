@@ -52,7 +52,7 @@ type User struct {
 	Allow_all_act_msg  bool
 	Geo_enabled        bool
 	Verified           bool
-	Status             Status
+	Status             StatusSimple
 	Allow_all_comment  bool
 	Avatar_large       string
 	Verified_reason    string
@@ -61,7 +61,7 @@ type User struct {
 	Bi_followers_count int64
 }
 
-type Status struct {
+type StatusSimple struct {
 	Created_at              string
 	Id                      int64
 	Text                    string
